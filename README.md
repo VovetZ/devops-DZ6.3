@@ -65,3 +65,74 @@ Digest: sha256:b9532b1edea72b6cee12d9f5a78547bd3812ea5db842566e17f8b33291ed2921
 Status: Downloaded newer image for mysql:8
 Creating dz63_mysql_1 ... done
 ```
+Cкопируем файл дампа в запущенный контейнер и восстановим базу
+```bash
+⋊> ~/D/backup docker cp test_dump.sql dz63_mysql_1:/tmp/
+ sudo docker exec -it dz63_mysql_1 bash
+/# mysql -u root -p testdb < /tmp/test_dump.sql
+```
+Определим версию сервера БД
+```sql
+bash-4.4# mysql -u root -p testdb     
+Enter password: 
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 15
+Server version: 8.0.30 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> \s
+mysql> \s
+--------------
+mysql  Ver 8.0.30 for Linux on x86_64 (MySQL Community Server - GPL)
+
+Connection id:      15
+Current database:   testdb
+Current user:       root@localhost
+SSL:            Not in use
+Current pager:      stdout
+Using outfile:      ''
+Using delimiter:    ;
+Server version:     8.0.30 MySQL Community Server - GPL
+Protocol version:   10
+Connection:     Localhost via UNIX socket
+Server characterset:    utf8mb4
+Db     characterset:    utf8mb4
+Client characterset:    latin1
+Conn.  characterset:    latin1
+UNIX socket:        /var/run/mysqld/mysqld.sock
+Binary data as:     Hexadecimal
+Uptime:         23 min 11 sec
+
+Threads: 2  Questions: 38  Slow queries: 0  Opens: 161  Flush tables: 3  Open tables: 79  Queries per second avg: 0.027
+--------------
+```
+Выведем список таблиц БД
+```sql
+mysql> show tables;
++------------------+
+| Tables_in_testdb |
++------------------+
+| orders           |
++------------------+
+1 row in set (0.01 sec)
+```
+Посчитаем количество записей с price > 300
+```sql
+mysql> select count(*) from orders where price > 300;
++----------+
+| count(*) |
++----------+
+|        1 |
++----------+
+1 row in set (0.00 sec)
+```
