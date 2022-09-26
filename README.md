@@ -180,3 +180,78 @@ mysql> SELECT * from INFORMATION_SCHEMA.USER_ATTRIBUTES where USER = 'test';
 +------+-----------+------------------------------------------------+
 1 row in set (0.00 sec)
 ```
+## Задача 3
+
+Установите профилирование `SET profiling = 1`.
+Изучите вывод профилирования команд `SHOW PROFILES;`.
+
+Исследуйте, какой `engine` используется в таблице БД `test_db` и **приведите в ответе**.
+
+Измените `engine` и **приведите время выполнения и запрос на изменения из профайлера в ответе**:
+- на `MyISAM`
+- на `InnoDB`  
+
+## Решение
+
+Установим профилирование и изучим вывод профилирования команд:
+```sql
+mysql> SET profiling = 1;
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+
+mysql> show profiles;
++----------+------------+----------------------------------------------------------------------+
+| Query_ID | Duration   | Query                                                                |
++----------+------------+----------------------------------------------------------------------+
+|        1 | 0.00131600 | SELECT * from INFORMATION_SCHEMA.USER_ATTRIBUTES where USER = 'test' |
+|        2 | 0.00074000 | select count(*) from orders where price > 300                        |
++----------+------------+----------------------------------------------------------------------+
+2 rows in set, 1 warning (0.00 sec)
+```  
+В  таблице БД `testdb` используется engine InnoDB:
+```sql
+mysql> SELECT TABLE_NAME, ENGINE FROM information_schema.TABLES where TABLE_SCHEMA = 'testdb';
++------------+--------+
+| TABLE_NAME | ENGINE |
++------------+--------+
+| orders     | InnoDB |
++------------+--------+
+1 row in set (0.00 sec)
+```
+
+Измените engine и **приведите время выполнения и запрос на изменения из профайлера в ответе**:
+```sql
+mysql> alter table testdb.orders engine='MyISAM';
+Query OK, 5 rows affected (0.04 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> alter table testdb.orders engine='InnoDB';
+Query OK, 5 rows affected (0.05 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> show profiles;
++----------+------------+----------------------------------------------------------------------------------------+
+| Query_ID | Duration   | Query                                                                                  |
++----------+------------+----------------------------------------------------------------------------------------+
+|        1 | 0.00131600 | SELECT * from INFORMATION_SCHEMA.USER_ATTRIBUTES where USER = 'test'                   |
+|        2 | 0.00074000 | select count(*) from orders where price > 300                                          |
+|        3 | 0.00251700 | SELECT TABLE_NAME, ENGINE FROM information_schema.TABLES where TABLE_SCHEMA = 'testdb' |
+|        4 | 0.03654100 | alter table testdb.orders engine='MyISAM'                                              |
+|        5 | 0.05159000 | alter table testdb.orders engine='InnoDB'                                              |
++----------+------------+----------------------------------------------------------------------------------------+
+5 rows in set, 1 warning (0.00 sec)
+```  
+
+## Задача 4 
+
+Изучите файл `my.cnf` в директории /etc/mysql.
+
+Измените его согласно ТЗ (движок InnoDB):
+- Скорость IO важнее сохранности данных
+- Нужна компрессия таблиц для экономии места на диске
+- Размер буффера с незакомиченными транзакциями 1 Мб
+- Буффер кеширования 30% от ОЗУ
+- Размер файла логов операций 100 Мб
+
+Приведите в ответе измененный файл `my.cnf`.
+
+## Решение 
